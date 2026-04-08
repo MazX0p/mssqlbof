@@ -1,10 +1,9 @@
 # MSSQLBOF — build system
 #
 # Targets:
-#   make            Cross-compile all BOFs to x64+x86 COFFs and build Linux test .so
+#   make            Cross-compile mssql.x64.o + mssql.x86.o BOFs
 #   make bofs       Just BOFs
-#   make tds        Just Linux test .so
-#   make test       Run pytest against Dockerized SQL Server
+#   make tds        Build just the Linux libtds.so (for offline protocol tests)
 #   make clean
 
 CC_X64    = x86_64-w64-mingw32-gcc
@@ -50,7 +49,7 @@ TDS_BOF_SRCS = src/tds/packet.c \
                src/tds/connect.c \
                src/common/args.c
 
-.PHONY: all bofs tds test clean dirs
+.PHONY: all bofs tds clean dirs
 
 all: bofs tds
 
