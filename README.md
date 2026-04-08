@@ -133,11 +133,15 @@ Only `MSVCRT$*`, `WS2_32$*`, `SECUR32$*`, `BCRYPT$*`, `CRYPT32$*`, `SCHANNEL$*`,
 
 Everything TLS is real Schannel (not a stub) with the SQL Server PRELOGIN-wrap quirk handled: the handshake runs inside TDS PRELOGIN type 0x12 packets, then LOGIN7 goes out as raw TLS application data, and the server answers that first login packet in plaintext. Multi-leg SSPI continuations also go plaintext — if you encrypt them with TLS, SRV02 just closes the socket.
 
-## Protocol notes
+## Documentation
 
-`docs/PROTOCOL.md` has the TDS deep dive: packet framing, PRELOGIN option stream, LOGIN7 password obfuscation, ALL_HEADERS on SQLBatch, the token stream grammar (COLMETADATA / ROW / NBCROW / DONE / LOGINACK / ENVCHANGE / 0xED SSPI continuation), the TLS handshake quirk, and the multi-leg NTLM pump.
-
-`docs/BLOG.md` is the narrative version — the actual debugging journey, with wire captures, of getting PTH working.
+| Doc | What's in it |
+|---|---|
+| [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | TDS 7.4 deep dive: packet framing, PRELOGIN option stream, LOGIN7 password obfuscation, ALL_HEADERS on SQLBatch, the token stream grammar (COLMETADATA / ROW / NBCROW / DONE / LOGINACK / ENVCHANGE / `0xED` SSPI continuation), the TLS handshake quirk, the multi-leg NTLM pump. |
+| [`docs/OPERATOR.md`](docs/OPERATOR.md) | End-to-end lab guide: build, stand up an Adaptix listener, drop a beacon on a Windows host, run every action with every auth mode (including PTH), and cross-C2 portability notes. |
+| [`docs/OPSEC.md`](docs/OPSEC.md) | Per-action on-wire and in-memory footprint. What each action loads into the beacon, what it leaves in SQL audit, and what a defender can see. |
+| [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | C2 framework matrix, SQL Server version matrix, and which auth modes are verified against which targets. |
+| [`docs/BLOG.md`](docs/BLOG.md) | The debugging narrative: how the pass-the-hash implementation actually came together, with wire captures, the LMv2 zero-bytes red herring, and the tshark diff against Impacket that broke it open. |
 
 ## Status
 
@@ -153,6 +157,7 @@ Everything TLS is real Schannel (not a stub) with the SQL Server PRELOGIN-wrap q
 Known edge cases:
 - Single-hop linked-server walker only; recursive nested `OPENQUERY` chain is v0.2.
 - The first SQLBatch after a multi-leg SSPI login drops data on the floor. A primer SELECT in `do_connect` drains it — side effect is the `[*] connected as ...` line every action logs. Root cause is in the post-LOGINACK read path and will get a proper fix in v0.2.
+
 
 ## Credits
 
