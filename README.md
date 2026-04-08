@@ -89,7 +89,7 @@ Four modes. Every mode is verified end-to-end against SQL Server 2019 in both CO
 
 The alternative — the one we took — is to skip SSPI for PTH entirely and generate the NTLMSSP messages ourselves. `src/tds/ntlm_pth.c` builds a Type 1 NEGOTIATE, parses the server's Type 2 CHALLENGE out of the TDS 0xED token, runs the NTLMv2 math with `bcrypt.dll`'s HMAC-MD5 provider, and writes a Type 3 AUTHENTICATE that SQL Server happily passes to the DC.
 
-The first cut failed with `error 18452: login is from an untrusted domain`. Capturing Impacket's working auth on the wire next to ours narrowed it down fast: we were sending 24 zeros for the LMv2 response and the full 0xe288... Windows negotiate flag soup. Matching Impacket's LMv2 computation and its smaller 0xa2880205 flag set (no `KEY_EXCH`, no `SIGN`, no `ALWAYS_SIGN`) made the server accept the hash. Write-up in [`docs/BLOG.md`](docs/BLOG.md).
+The first cut failed with `error 18452: login is from an untrusted domain`. Capturing Impacket's working auth on the wire next to ours narrowed it down fast: we were sending 24 zeros for the LMv2 response and the full 0xe288... Windows negotiate flag soup. Matching Impacket's LMv2 computation and its smaller 0xa2880205 flag set (no `KEY_EXCH`, no `SIGN`, no `ALWAYS_SIGN`) made the server accept the hash. Write-up in [`BLOG`](https://0xmaz.me/posts/Writing-a-TDS-7.4-BOF-for-SQL-Server-all-the-way-to-Pass-the-Hash/).
 
 ## Privesc for `--action exec`
 
@@ -141,7 +141,7 @@ Everything TLS is real Schannel (not a stub) with the SQL Server PRELOGIN-wrap q
 | [`docs/OPERATOR.md`](docs/OPERATOR.md) | End-to-end lab guide: build, stand up an Adaptix listener, drop a beacon on a Windows host, run every action with every auth mode (including PTH), and cross-C2 portability notes. |
 | [`docs/OPSEC.md`](docs/OPSEC.md) | Per-action on-wire and in-memory footprint. What each action loads into the beacon, what it leaves in SQL audit, and what a defender can see. |
 | [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | C2 framework matrix, SQL Server version matrix, and which auth modes are verified against which targets. |
-| [`docs/BLOG.md`](docs/BLOG.md) | The debugging narrative: how the pass-the-hash implementation actually came together, with wire captures, the LMv2 zero-bytes red herring, and the tshark diff against Impacket that broke it open. |
+| [`BLOG`](https://0xmaz.me/posts/Writing-a-TDS-7.4-BOF-for-SQL-Server-all-the-way-to-Pass-the-Hash/) | The debugging narrative: how the pass-the-hash implementation actually came together, with wire captures, the LMv2 zero-bytes red herring, and the tshark diff against Impacket that broke it open. |
 
 ## Status
 
