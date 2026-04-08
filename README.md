@@ -165,7 +165,7 @@ Known edge cases:
 - [`TrustedSec/COFFLoader`](https://github.com/trustedsec/COFFLoader) for an independent loader to test against.
 - `impacket`'s `ntlm.py` and `mssqlclient.py` — the reference we diffed against when chasing the NTLMv2 flag soup.
 - `[MS-TDS]` and `[MS-NLMP]` — the specs that all this hand-rolling follows.
-- `Anthropic Claude` — Parts of the documentation were drafted with the help of Anthropic's Claude. All code is hand-written by *ME* and verified end-to-end in the lab.
+- `Opus 4.6` — Parts of the documentation were drafted with the help of Opus 4.6. All code is hand-written by *ME* and verified end-to-end in the lab.
 
 ## License
 
