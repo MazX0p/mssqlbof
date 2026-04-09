@@ -252,6 +252,20 @@ int ntlm_pth_build_type3(const uint8_t *type2, size_t type2_len,
     if (!nt_resp) { MSVCRT$free(temp); return -1; }
     MSVCRT$memcpy(nt_resp, nt_proof, 16);
     MSVCRT$memcpy(nt_resp + 16, temp, temp_len);
+
+    /* LMv2Response = HMAC_MD5(NTLMv2Hash, serverChallenge||clientChallenge) || clientChallenge
+     * (24 bytes total). Must be computed BEFORE freeing temp since clientChallenge
+     * lives at temp[16..23]. */
+    uint8_t lmv2[24];
+    {
+        uint8_t ccinput[16];
+        MSVCRT$memcpy(ccinput, t2.server_challenge, 8);
+        MSVCRT$memcpy(ccinput + 8, temp + 16, 8);  /* clientChallenge from temp[16..23] */
+        if (hmac_md5(ntlmv2_hash, 16, ccinput, 16, lmv2) != 0) {
+            MSVCRT$free(temp); MSVCRT$free(nt_resp); return -1;
+        }
+        MSVCRT$memcpy(lmv2 + 16, temp + 16, 8);
+    }
     MSVCRT$free(temp);
 
     /* 5. Build AUTHENTICATE_MESSAGE */
@@ -259,18 +273,6 @@ int ntlm_pth_build_type3(const uint8_t *type2, size_t type2_len,
     size_t domain_b = dlen * 2;
     size_t user_b   = ulen * 2;
     size_t wsb      = wlen * 2;
-    /* LMv2Response = HMAC_MD5(NTLMv2Hash, serverChallenge||clientChallenge) || clientChallenge
-     * (24 bytes total). Required by SQL Server (24 zeros trigger "untrusted domain"). */
-    uint8_t lmv2[24];
-    {
-        uint8_t ccinput[16];
-        MSVCRT$memcpy(ccinput, t2.server_challenge, 8);
-        MSVCRT$memcpy(ccinput + 8, temp + 16, 8);  /* clientChallenge from temp[16..23] */
-        if (hmac_md5(ntlmv2_hash, 16, ccinput, 16, lmv2) != 0) {
-            MSVCRT$free(nt_resp); return -1;
-        }
-        MSVCRT$memcpy(lmv2 + 16, temp + 16, 8);
-    }
     size_t lm_resp_len = 24;
     size_t hdr = 88;  /* fixed header including MIC */
     size_t payload_off = hdr;
